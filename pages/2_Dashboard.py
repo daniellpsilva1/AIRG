@@ -6,7 +6,7 @@ import random
 import pandas as pd
 from streamlit_lightweight_charts import renderLightweightCharts
 import streamlit_lightweight_charts.dataSamples as data
-from menu import menu_with_redirect
+from pages.menu import menu_with_redirect
 # import stripe
 # from server import ensure_user_in_database, fetch_user_subscription, get_user_details, fetch_user_projects, display_subscription_info
 

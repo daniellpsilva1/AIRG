@@ -3,7 +3,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 import streamlit_shadcn_ui as ui
 from streamlit_extras.switch_page_button import switch_page
-from menu import menu_home
+from pages.menu import menu_home
 import requests
 
 # --- Page Configuration ---

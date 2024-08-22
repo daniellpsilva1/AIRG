@@ -1,5 +1,5 @@
 import streamlit as st
-from menu import menu_with_redirect
+from pages.menu import menu_with_redirect
 
 st.set_option("client.showSidebarNavigation", False)
 
