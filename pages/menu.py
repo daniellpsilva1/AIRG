@@ -5,7 +5,7 @@ def authenticated_menu():
     # Show a navigation menu for authenticated users
     st.sidebar.page_link("pages/1_Home.py", label="Home")
     st.sidebar.page_link("pages/2_Dashboard.py", label="Dashboard")
-    st.sidebar.page_link("Login.py", label="Logout")
+    st.sidebar.page_link("pages/Login.py", label="Logout")
 
 
 
@@ -21,7 +21,7 @@ def authenticated_menu():
 def unauthenticated_menu():
     # Show a navigation menu for unauthenticated users
     st.sidebar.page_link("pages/1_Home.py", label="Home")
-    st.sidebar.page_link("Login.py", label="Login")
+    st.sidebar.page_link("pages/Login.py", label="Login")
 
 
 def menu():
@@ -36,7 +36,7 @@ def menu_with_redirect():
     # Redirect users to the main page if not logged in, otherwise continue to
     # render the navigation menu
     if 'user' not in st.session_state or st.session_state.role is None:
-        st.switch_page("Login.py")
+        st.switch_page("pages/Login.py")
     print("role", st.session_state.role)
     menu()
 
