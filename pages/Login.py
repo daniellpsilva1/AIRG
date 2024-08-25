@@ -36,7 +36,6 @@ def main():
         url=SUPABASE_URL,
         apiKey=SUPABASE_KEY,
         providers=["github", "google"],
-        redirect_url=st.secrets.get("REDIRECT_URL", None)
     )
     
     if session:
