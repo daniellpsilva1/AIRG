@@ -1,5 +1,5 @@
 import streamlit as st
-from pages.menu import menu, menu_with_redirect, unauthenticated_menu
+from pages.menu import menu_with_redirect, unauthenticated_menu
 from streamlit_supabase_auth import login_form, logout_button
 from supabase import create_client, Client
 import streamlit_shadcn_ui as ui
@@ -36,25 +36,28 @@ def main():
         url=SUPABASE_URL,
         apiKey=SUPABASE_KEY,
         providers=["github", "google"],
-        redirect_url=st.secrets.get("REDIRECT_URL", None)  # Add this line
+        redirect_url=st.secrets.get("REDIRECT_URL", None)
     )
     
     if session:
-        menu()
         # Store user session in Streamlit session state
         st.session_state['user'] = session['user']
 
         # Perform checks of user session here. 
         st.session_state.role = "user"
 
-        # # Update query param to reset url fragments
-        st.experimental_set_query_params(login="success")  # Change this line
+        # Use menu_with_redirect instead of menu
+        menu_with_redirect()
+
+        # Update query param to reset url fragments
+        st.experimental_set_query_params(login="success")
 
         with st.sidebar:
             st.markdown(f"**Logged in as: *{session['user']['email']}***")
             if logout_button(url=SUPABASE_URL,apiKey=SUPABASE_KEY):
                 print("Logging out.")
-                st.experimental_rerun()  # Add this line
+                st.session_state.clear()
+                st.experimental_rerun()
 
     if not session:
         unauthenticated_menu()
