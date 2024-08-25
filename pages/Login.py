@@ -35,8 +35,10 @@ def main():
     session = login_form(
         url=SUPABASE_URL,
         apiKey=SUPABASE_KEY,
-        providers=["github", "google"]
+        providers=["github", "google"],
+        redirect_url=st.secrets.get("REDIRECT_URL", None)  # Add this line
     )
+    
     if session:
         menu()
         # Store user session in Streamlit session state
@@ -46,12 +48,13 @@ def main():
         st.session_state.role = "user"
 
         # # Update query param to reset url fragments
-        st.query_params.login = ["success"]
+        st.experimental_set_query_params(login="success")  # Change this line
 
         with st.sidebar:
             st.markdown(f"**Logged in as: *{session['user']['email']}***")
             if logout_button(url=SUPABASE_URL,apiKey=SUPABASE_KEY):
                 print("Logging out.")
+                st.experimental_rerun()  # Add this line
 
     if not session:
         unauthenticated_menu()
