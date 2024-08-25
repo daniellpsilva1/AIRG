@@ -8,6 +8,8 @@ import logging
 from bs4 import BeautifulSoup
 import pathlib
 from urllib.parse import parse_qs, urlparse
+import os
+import uuid
 
 st.set_option("client.showSidebarNavigation", False)
 st.set_page_config(
@@ -55,7 +57,11 @@ def handle_oauth_callback():
             
             if session:
                 st.success("Successfully logged in!")
-                return session
+                # Store the session in Streamlit's session state
+                st.session_state['user'] = session['user']
+                # Redirect to the main page
+                st.experimental_set_query_params()
+                st.experimental_rerun()
             else:
                 st.error("Failed to exchange code for session.")
         else:
@@ -65,30 +71,58 @@ def handle_oauth_callback():
     
     return None
 
+def get_image(image_path, default_image_path):
+    if os.path.exists(image_path):
+        return image_path
+    elif os.path.exists(default_image_path):
+        return default_image_path
+    else:
+        return None
+
 def main():
     # Configure Supabase authentication
-    logo = "public/streamlit-logo.svg"
+    logo_path = "public/streamlit-logo.svg"
+    default_logo_path = "path/to/default/logo.svg"  # Replace with an actual path
+    
+    logo = get_image(logo_path, default_logo_path)
 
     left_co, cent_co, last_co = st.columns(3)
 
     with cent_co:
-        st.image(logo)
+        if logo:
+            st.image(logo)
+        else:
+            st.write("Logo image not found")
 
     # Check if we're handling an OAuth callback
-    callback_session = handle_oauth_callback()
-    if callback_session:
-        handle_authenticated_session(callback_session)
+    if 'code' in st.experimental_get_query_params():
+        handle_oauth_callback()
+    elif 'user' in st.session_state:
+        # User is already authenticated
+        handle_authenticated_session(st.session_state['user'])
     else:
-        session = login_form(
-            url=SUPABASE_URL,
-            apiKey=SUPABASE_KEY,
-            providers=["github", "google"]
-        )
-        
-        if session:
-            handle_authenticated_session(session)
-        else:
-            unauthenticated_menu()
+        try:
+            # Generate a unique state for this login attempt
+            state = str(uuid.uuid4())
+            st.session_state['oauth_state'] = state
+
+            session = login_form(
+                url=SUPABASE_URL,
+                apiKey=SUPABASE_KEY,
+                providers=["github", "google"],
+                options={
+                    "redirectTo": st.experimental_get_query_params().get('redirect', [''])[0],
+                    "queryParams": {"state": state}
+                }
+            )
+            
+            if session:
+                handle_authenticated_session(session)
+            else:
+                unauthenticated_menu()
+        except FileNotFoundError as e:
+            st.error(f"Error loading authentication form: {str(e)}")
+            st.info("Please check if all required files are present in the streamlit_supabase_auth package.")
 
 if __name__ == "__main__":
     main()
