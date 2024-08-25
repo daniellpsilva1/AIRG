@@ -79,6 +79,37 @@ def get_image(image_path, default_image_path):
     else:
         return None
 
+def fallback_login_form():
+    with st.form("login_form"):
+        email = st.text_input("Email")
+        password = st.text_input("Password", type="password")
+        submit = st.form_submit_button("Log In")
+
+        if submit:
+            try:
+                response = supabase.auth.sign_in_with_password({"email": email, "password": password})
+                if response.user:
+                    st.success("Successfully logged in!")
+                    return response.session
+                else:
+                    st.error("Invalid email or password")
+            except Exception as e:
+                st.error(f"An error occurred: {str(e)}")
+
+    if st.button("Sign in with Google"):
+        try:
+            auth_url = supabase.auth.sign_in_with_oauth({
+                "provider": "google",
+                "options": {
+                    "redirectTo": st.experimental_get_query_params().get('redirect', [''])[0] or st.get_page_url()
+                }
+            })
+            st.markdown(f'<meta http-equiv="refresh" content="0;url={auth_url}">', unsafe_allow_html=True)
+        except Exception as e:
+            st.error(f"An error occurred: {str(e)}")
+
+    return None
+
 def main():
     # Configure Supabase authentication
     logo_path = "public/streamlit-logo.svg"
@@ -111,7 +142,7 @@ def main():
                 apiKey=SUPABASE_KEY,
                 providers=["github", "google"],
                 options={
-                    "redirectTo": st.experimental_get_query_params().get('redirect', [''])[0],
+                    "redirectTo": st.experimental_get_query_params().get('redirect', [''])[0] or st.get_page_url(),
                     "queryParams": {"state": state}
                 }
             )
@@ -120,9 +151,17 @@ def main():
                 handle_authenticated_session(session)
             else:
                 unauthenticated_menu()
-        except FileNotFoundError as e:
-            st.error(f"Error loading authentication form: {str(e)}")
-            st.info("Please check if all required files are present in the streamlit_supabase_auth package.")
+        except TypeError as e:
+            st.warning("Error with login form. Using fallback authentication method.")
+            logging.error(f"TypeError in login_form: {str(e)}")
+            session = fallback_login_form()
+            if session:
+                handle_authenticated_session(session)
+            else:
+                unauthenticated_menu()
+        except Exception as e:
+            st.error(f"An unexpected error occurred: {str(e)}")
+            logging.error(f"Unexpected error in main: {str(e)}")
 
 if __name__ == "__main__":
     main()
