@@ -1,5 +1,5 @@
 import streamlit as st
-from menu import menu, menu_with_redirect, unauthenticated_menu
+from pages.menu import menu, menu_with_redirect, unauthenticated_menu
 from streamlit_supabase_auth import login_form, logout_button
 from supabase import create_client, Client
 import streamlit_shadcn_ui as ui
